@@ -1,19 +1,19 @@
 <template>
-  <section class="container">
+    <div class="page-index">
 
-  </section>
+    </div>
 </template>
 
 <script>
-import Logo from '~/components/Logo.vue'
 
 export default {
   components: {
-    Logo
+
   }
 }
 </script>
 
 <style>
+
 
 </style>
