@@ -127,7 +127,33 @@
           },
           layout: 'blank',
           methods: {
+            sendMsg: async function () {
+              const self = this;
 
+              self.$axios.post('http://127.0.0.1:3000/users/verify', {
+                username: self.ruleForm.name,
+                email: self.ruleForm.email
+              })
+                .then(function (response) {
+                  console.log(response);
+                })
+                .catch(function (error) {
+                  console.log(error);
+                });
+
+
+//              try {
+//                const response = await self.axios.post('/verify', {
+//                  username: self.ruleForm.name,
+//                  email: self.ruleForm.email
+//                });
+//                console.log(response);
+//              } catch (error){
+//                  console.log(error)
+//              }
+
+
+            },
             register: function () {
               let self = this;
             }

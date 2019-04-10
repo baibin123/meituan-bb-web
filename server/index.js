@@ -1,9 +1,43 @@
 // const Koa = require('koa')
 import Koa from 'koa';
-const consola = require('consola')
 const { Nuxt, Builder } = require('nuxt')
+const consola = require('consola')
+
+import mongoose from 'mongoose';
+import bodyParser from 'koa-bodyparser'
+import session from 'koa-generic-session'
+import Redis from 'koa-redis';
+import json from 'koa-json';
+import dbConfig from './dbs/config'
+import passport from './interface/utils/passport'
+import users from './interface/user'
+import Router from 'koa-router';
+
+const router = new Router();
+
+
 
 const app = new Koa()
+app.keys = ['mt', 'keys'];
+app.proxy = true;
+app.use(session({
+  key: 'mt',
+  prefix: 'mt:uid',
+  store: new Redis()
+}));
+
+//post请求获取参数，美化json
+app.use(bodyParser({
+  extendTypes: ['json','form', 'text']
+}));
+app.use(json());
+
+mongoose.connect(dbConfig.dbs,{
+  useNewUrlParser: true
+});
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Import and Set Nuxt.js options
 let config = require('../nuxt.config.js')
@@ -25,6 +59,13 @@ async function start() {
   } else {
     await nuxt.ready()
   }
+
+  router.get('/list', (ctx, next) => {
+      ctx.body = 'Hello World!';
+    });
+
+  app.use(users.routes()).use(users.allowedMethods());
+  app.use(router.routes()).use(router.allowedMethods());
 
   app.use(ctx => {
     ctx.status = 200
