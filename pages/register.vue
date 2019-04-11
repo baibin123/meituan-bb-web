@@ -127,35 +127,61 @@
           },
           layout: 'blank',
           methods: {
+
             sendMsg: async function () {
+              if (!this.ruleForm.name) {
+                  return this.$message({message: '请输入姓名',type: 'warning'});
+              }
+              if (!this.ruleForm.email) {
+                  return this.$message({message: '请输入邮箱',type: 'warning'});
+              }
               const self = this;
-
-              self.$axios.post('http://127.0.0.1:3000/users/verify', {
-                username: self.ruleForm.name,
-                email: self.ruleForm.email
-              })
-                .then(function (response) {
-                  console.log(response);
-                })
-                .catch(function (error) {
-                  console.log(error);
+              try {
+                const response = await self.$axios.post('/users/verify', {
+                  username: self.ruleForm.name,
+                  email: self.ruleForm.email
                 });
-
-
-//              try {
-//                const response = await self.axios.post('/verify', {
-//                  username: self.ruleForm.name,
-//                  email: self.ruleForm.email
-//                });
-//                console.log(response);
-//              } catch (error){
-//                  console.log(error)
-//              }
-
-
+                if (response.data.code === 0) {
+                  this.$message({message: '验证码发送成功',type: 'success'});
+                } else {
+                  this.$message({
+                    message: response.data.msg,
+                    type: 'warning'
+                  });
+                }
+              } catch (error){
+                this.$message.error('服务器内部错误');
+              }
             },
-            register: function () {
+            register: async function () {
               let self = this;
+              if (!this.ruleForm.code) {
+                return this.$message({message: '请输入验证码',type: 'warning'});
+              }
+              if (!this.ruleForm.pwd) {
+                return this.$message({message: '请输入密码',type: 'warning'});
+              }
+              if (this.ruleForm.pwd !== this.ruleForm.cpwd) {
+                return this.$message({message: '两次输入的密码不一致',type: 'warning'});
+              }
+              try {
+                const response = await self.$axios.post('/users/signup', {
+                  username: self.ruleForm.name,
+                  email: self.ruleForm.email,
+                  code: self.ruleForm.code,
+                  password: self.ruleForm.pwd,
+                });
+                if (response.data.code === 0) {
+                  this.$message({message: '创建成功',type: 'success'});
+                } else {
+                  this.$message({
+                    message: response.data.msg,
+                    type: 'warning'
+                  });
+                }
+              } catch (error){
+                this.$message.error('服务器内部错误');
+              }
             }
           }
         }

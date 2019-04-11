@@ -15,10 +15,12 @@ let Store = new Redis().client;
 router.post('/signup',async (ctx) => {
   const { username, password, email, code } = ctx.request.body;
   if (code) {
-    const saveCode = await Store.hget(`nodeMail${username}`,'code');
-    const saveExpire = await Store.hget(`nodeMail${username}`,'expire');
+    const saveCode = await Store.hget(`nodeMail:${username}`,'code');
+    const saveExpire = await Store.hget(`nodeMail:${username}`,'expire');
+    console.log('code',code);
+    console.log('saveCode',saveCode);
     if (code === saveCode) {
-      if (new date().getTime() - saveExpire > 0) {
+      if (new Date().getTime() - saveExpire > 0) {
         ctx.body = {
           code: -1,
           msg: '验证码已过期，请重新尝试'
@@ -40,12 +42,9 @@ router.post('/signup',async (ctx) => {
     return false
   }
 
-  const user = User.find({
-    where: {
-      username: username
-    }
-  });
-  if (user) {
+  const user = await User.find({username: username});
+  console.log('*********', user.length);
+  if (user.length) {
     ctx.body = {
       code: -1,
       msg: '已被注册'
@@ -53,14 +52,14 @@ router.post('/signup',async (ctx) => {
     return false;
   }
 
-  const nuser = User.create({
+  const nuser = await User.create({
     username,
     password,
     email
   });
 
   if (nuser) {
-    const response = await axios.post('/users/login',{username, password});
+    const response = await axios.post('/users/signin',{username, password});
     if (response && response.data.code === 0) {
       ctx.body = {
         code: 0,
@@ -141,8 +140,7 @@ router.post('/verify', async(ctx, next) => {
     if (error) {
       return console.log(`邮件发送失败：${error}`);
     } else {
-      Store.hmset(`nodemail:${ko.user}`,'code', ko.code);
-      Store.hmset(`nodemail:${ko.user}`,'expire', ko.expire );
+      Store.hmset(`nodeMail:${ko.user}`,'code', ko.code,'expire', ko.expire);
     }
     ctx.body = {
       code: 0,

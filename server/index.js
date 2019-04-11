@@ -34,6 +34,10 @@ app.use(json());
 
 mongoose.connect(dbConfig.dbs,{
   useNewUrlParser: true
+}, function (error) {
+  if(error){
+    console.log('connect mongodb error', error);
+  }
 });
 
 app.use(passport.initialize());
